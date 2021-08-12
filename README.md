@@ -1,13 +1,17 @@
-mod game;
 
-pub use game::{Board, Core, Direction};
-
-use std::io::stdin;
-
-use log::{info, warn};
-use log4rs::init_file;
+# rust 2048
+A command line game of 2048 implemented in rust.
 
 
+## Quick Start
+Install Rust and Cargo, open the terminal and run:
+
+1. `cargo update`
+2. `cargo run`
+
+
+## Mainly Game Logic
+```rust
 pub fn run() {
     init_file("config/log4rs.yaml", Default::default()).unwrap();
     info!("Welcome to Rust 2048 ~");
@@ -48,3 +52,4 @@ pub fn run() {
 
     info!("{}", board);
 }
+```

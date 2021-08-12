@@ -1,7 +1,5 @@
-use log::{info, warn};
-use std::{collections::VecDeque, error, fmt, fs::write, io::stdin, ops::Range};
+use std::{collections::VecDeque, error, fmt, fs::write, ops::Range};
 
-use log4rs::init_file;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +16,11 @@ type Tile = i32;
 type Coordinate = (usize, usize);
 type Trace = (Coordinate, Coordinate);
 
+/// The type of game board data contains:
+///     1.the size of the board
+///     2.the two-dimensional array of the tiles value,
+///       the real value = 0 << (the stored value)
+///     3.the scores of current situation.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Board {
     size: usize,
@@ -59,6 +62,7 @@ impl Board {
         self.tiles[pos.0][pos.1] = value;
     }
 
+    /// Generates multiple values randomly in the given range.
     pub fn generate(&mut self, times: u32, scope: Range<i32>) {
         let mut rng = thread_rng();
         for _ in 0..times {
@@ -84,6 +88,7 @@ impl Board {
         Some(cell)
     }
 
+    /// Saves the board data formatted as json to the given path.
     pub fn save(&self, path: &str) -> Result<(), Box<dyn error::Error>> {
         let json = serde_json::to_string(&self)?;
         write(path, json)?;
@@ -91,6 +96,7 @@ impl Board {
         Ok(())
     }
 }
+
 
 pub struct Core;
 
@@ -119,6 +125,7 @@ impl Core {
         true
     }
 
+    /// Moves by some direction and returns the traces of all moved tiles.
     pub fn shift(&self, board: &mut Board, direction: &Direction) -> Vec<Trace> {
         let mut traces: Vec<Trace> = Vec::new();
 
@@ -198,46 +205,6 @@ impl Core {
     }
 }
 
-pub fn run() {
-    init_file("config/log4rs.yaml", Default::default()).unwrap();
-    info!("Welcome to Rust 2048 ~");
-
-    let core = Core::new();
-    let mut board = Board::new(4, None, 0);
-
-    while !core.is_game_over(&board) {
-        board.generate(1, 1..3);
-        info!("{}", board);
-
-        loop {
-            info!("Input direction(w,a,s,d): ");
-            let mut direction_str = String::new();
-            stdin().read_line(&mut direction_str).unwrap();
-
-            let traces = core.shift(
-                &mut board,
-                match direction_str.trim().to_lowercase().as_str() {
-                    "w" => &Direction::Up,
-                    "a" => &Direction::Left,
-                    "s" => &Direction::Down,
-                    "d" => &Direction::Right,
-                    _ => {
-                        warn!("Invalid input!");
-                        continue;
-                    }
-                },
-            );
-            info!("Traces: {:?}", traces);
-            if traces.is_empty() {
-                warn!("Invalid moved!");
-                continue;
-            }
-            break;
-        }
-    }
-
-    info!("{}", board);
-}
 
 #[cfg(test)]
 mod tests {
